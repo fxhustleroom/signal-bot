@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Request
-import requests
-import os
+import requests, os
 
 app = FastAPI()
 
@@ -13,18 +12,9 @@ async def webhook(req: Request):
     data = await req.json()
 
     if data.get("secret") != SECRET:
-        return {"error": "unauthorized"}
+        return {"error":"unauthorized"}
 
-    msg = f"""
-📊 FX SIGNAL
-
-Pair: {data['symbol']}
-Type: {data['action']}
-
-Entry: {data['entry']}
-SL: {data['sl']}
-TP: {data['tp']}
-"""
+    msg = data.get("message")
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
@@ -33,4 +23,4 @@ TP: {data['tp']}
         "text": msg
     })
 
-    return {"status": "sent"}
+    return {"status":"sent"}
