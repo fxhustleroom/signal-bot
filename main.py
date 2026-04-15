@@ -1,51 +1,36 @@
 from fastapi import FastAPI, Request
 import requests
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+SECRET = os.getenv("SECRET")
 
-def send_telegram(message: str):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = {
-        "chat_id": CHAT_ID,
-        "text": message,
-        "parse_mode": "HTML"
-    }
-    try:
-        requests.post(url, json=data, timeout=10)
-    except Exception as e:
-        print("Telegram Error:", e)
-
-@app.get("/")
-def home():
-    return {"status": "Bot is LIVE 🚀"}
-
-@app.post("/webhook/mt5/signal")
-async def receive_signal(req: Request):
+@app.post("/webhook")
+async def webhook(req: Request):
     data = await req.json()
 
-    symbol = data.get("symbol")
-    action = data.get("action")
-    entry = data.get("entry")
-    sl = data.get("sl")
-    tp = data.get("tp")
+    if data.get("secret") != SECRET:
+        return {"error": "unauthorized"}
 
-    message = f"""
-📊 <b>FX SIGNAL</b>
+    msg = f"""
+📊 FX SIGNAL
 
-Pair: {symbol}
-Action: {action}
-Entry: {entry}
-SL: {sl}
-TP: {tp}
+Pair: {data['symbol']}
+Type: {data['action']}
+
+Entry: {data['entry']}
+SL: {data['sl']}
+TP: {data['tp']}
 """
 
-    send_telegram(message)
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+    requests.post(url, json={
+        "chat_id": CHAT_ID,
+        "text": msg
+    })
 
     return {"status": "sent"}
