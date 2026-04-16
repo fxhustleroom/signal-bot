@@ -1,32 +1,34 @@
 from fastapi import FastAPI, Request
-import requests, os
+import requests
+import os
 
 app = FastAPI()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-SECRET = os.getenv("SECRET")
 
-@app.post("/webhook")
-async def webhook(req: Request):
-    data = await req.json()
+@app.post("/webhook/mt5/signal")
+async def receive_signal(request: Request):
+    data = await request.json()
 
-    print("🔥 RECEIVED DATA:", data)   # <<< ADD THIS
+    text = f"""
+📊 *FXH SIGNAL*
 
-    if data.get("secret") != SECRET:
-        print("❌ WRONG SECRET")
-        return {"error":"unauthorized"}
+Symbol: {data['symbol']}
+Action: {data['action']}
+Entry: {data['entry']}
+SL: {data['sl']}
+TP: {data['tp']}
 
-    msg = data.get("message")
-    print("📩 MESSAGE:", msg)
+Risk: {data['risk']}
+"""
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-    r = requests.post(url, json={
+    requests.post(url, json={
         "chat_id": CHAT_ID,
-        "text": msg
+        "text": text,
+        "parse_mode": "Markdown"
     })
 
-    print("📤 TELEGRAM RESPONSE:", r.text)
-
-    return {"status":"sent"}
+    return {"status": "sent"}
