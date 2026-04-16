@@ -9,11 +9,7 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 @app.post("/webhook/mt5/signal")
 async def receive_signal(request: Request):
-    body = await request.body()
-    print("RAW BODY:", body)
-
     data = await request.json()
-    print("JSON:", data)
 
     text = f"""
 📊 *FXH SIGNAL*
