@@ -5,7 +5,6 @@ import os
 
 app = FastAPI()
 
-# ✅ FIX CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,15 +27,20 @@ async def receive_signal(request: Request):
     data = await request.json()
     print("JSON:", data)
 
+    strategy = data.get("strategy", "N/A")
+
     text = f"""
 📊 FXH SIGNAL
 
+Strategy: {strategy}
 Symbol: {data.get('symbol')}
 Action: {data.get('action')}
 Entry: {data.get('entry')}
 SL: {data.get('sl')}
 TP: {data.get('tp')}
 Risk: {data.get('risk')}
+Lot: {data.get('lot')}
+Winrate: {data.get('winrate')}
 """
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
