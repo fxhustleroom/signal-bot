@@ -31,42 +31,33 @@ async def receive_signal(request: Request):
     if not body:
         return {"status": "error", "message": "Empty body"}
 
+    # ✅ FIX MT5 NULL BYTE ISSUE
+    clean_body = body.replace(b"\x00", b"").strip()
+
     try:
-        data = json.loads(body)
+        data = json.loads(clean_body.decode("utf-8"))
     except Exception as e:
         print("JSON ERROR:", str(e))
         return {"status": "error", "message": "Invalid JSON"}
 
     print("JSON:", data)
 
-    strategy = data.get("strategy", "N/A")
-    symbol = data.get("symbol", "N/A")
-    action = data.get("action", "N/A")
-    entry = data.get("entry", "N/A")
-    sl = data.get("sl", "N/A")
-    tp = data.get("tp", "N/A")
-    risk = data.get("risk", "N/A")
-    lot = data.get("lot", "N/A")
-    winrate = data.get("winrate", "N/A")
-
     text = f"""
 📊 FXH SIGNAL
 
-Strategy: {strategy}
-Symbol: {symbol}
-Action: {action}
+Strategy: {data.get("strategy", "N/A")}
+Symbol: {data.get("symbol", "N/A")}
+Action: {data.get("action", "N/A")}
 
-Entry: {entry}
-SL: {sl}
-TP: {tp}
+Entry: {data.get("entry", "N/A")}
+SL: {data.get("sl", "N/A")}
+TP: {data.get("tp", "N/A")}
 
-Risk: {risk}
-Lot: {lot}
-Winrate: {winrate}
+Risk: {data.get("risk", "N/A")}
+Lot: {data.get("lot", "N/A")}
+Winrate: {data.get("winrate", "N/A")}
+Reason: {data.get("reason", "N/A")}
 """
-
-    if not BOT_TOKEN or not CHAT_ID:
-        return {"status": "error", "message": "BOT_TOKEN or CHAT_ID missing"}
 
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
@@ -79,6 +70,5 @@ Winrate: {winrate}
 
     return {
         "status": "sent",
-        "telegram_status": res.status_code,
-        "telegram_response": res.text
+        "telegram_status": res.status_code
     }
